@@ -4,6 +4,9 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white)
 ![Vitest](https://img.shields.io/badge/Vitest-3-6E9F18?logo=vitest&logoColor=white)
+[![Live demo](https://img.shields.io/badge/demo-live-4ade80?logo=vercel&logoColor=white)](https://octaipipe-floorplan.vercel.app/)
+
+**[Live demo →](https://octaipipe-floorplan.vercel.app/)**
 
 A React + TypeScript application that renders a data centre hall floorplan from a DXF
 file and overlays live sensor readings (temperature / humidity) at their real positions,
