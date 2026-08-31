@@ -9,18 +9,32 @@ import {
 import type { Camera, Geometry, Point } from '@core/index';
 import { pan, zoom } from '@core/index';
 import { createDxfSource, FloorplanSvg } from '@modules/floorplan';
-import { loadSensors, SensorLayer } from '@modules/sensors';
-import type { RenderableSensor, Sensor } from '@modules/sensors';
+import { createSensorsSource, SensorLayer, usePolling } from '@modules/sensors';
+import type { RenderableSensor, SensorSnapshot } from '@modules/sensors';
 
 const DXF_URL = '/octaipipefloorplan.dxf';
 const geometrySource = createDxfSource(DXF_URL);
 
 const SENSORS_URL = '/sensors.json';
+const sensorsSource = createSensorsSource(SENSORS_URL);
 
 /** Reconciles raw sensor millimetres into model-space metres (D-2's ÷1000 hypothesis, confirmed here). */
 const SENSOR_MM_TO_M = 1 / 1000;
 
 const ZOOM_STEP = 1.1;
+
+type Status = 'loading' | 'error' | 'live';
+
+const STATUS_LABEL: Record<Status, string> = {
+  loading: 'Loading',
+  error: 'Error',
+  live: 'Live',
+};
+const STATUS_COLOR: Record<Status, string> = {
+  loading: '#d0d4dc',
+  error: '#e94560',
+  live: '#4ade80',
+};
 
 /** Centres and scales the camera so geometry's bounding box fills the viewport. */
 function fitCamera(
@@ -64,50 +78,45 @@ function fitCamera(
   };
 }
 
-/**
- * Reduces a sensor to its current frame for render: model-space position
- * (mm→m reconciled) and the latest reading. Single frame for now — Stage 4
- * advances this via a polled frame index instead of always reading [0].
- */
-function toRenderableSensor(sensor: Sensor): RenderableSensor | null {
-  const current = sensor.readings[0];
-  if (!current) return null;
+/** Reconciles a polled snapshot's raw mm position into model-space metres for render. */
+function toRenderableSensor(snapshot: SensorSnapshot): RenderableSensor {
   return {
-    id: sensor.id,
+    id: snapshot.id,
     position: {
-      x: sensor.position.x * SENSOR_MM_TO_M,
-      y: sensor.position.y * SENSOR_MM_TO_M,
+      x: snapshot.position.x * SENSOR_MM_TO_M,
+      y: snapshot.position.y * SENSOR_MM_TO_M,
     },
-    temperatureC: current.temperatureC,
+    temperatureC: snapshot.reading.temperatureC,
   };
 }
 
 /**
- * Container: owns camera state, loads geometry + sensors, wires pan/zoom.
- * Joins geometry and sensors into one <svg> under a single shared
- * <g transform> (D-7) — the join point architecture.md assigns to app.
+ * Container: owns camera state, loads geometry once, polls sensors live,
+ * wires pan/zoom. Joins geometry and sensors into one <svg> under a single
+ * shared <g transform> (D-7) — the join point architecture.md assigns to app.
  */
 export function FloorplanView() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [geometry, setGeometry] = useState<Geometry | null>(null);
-  const [sensors, setSensors] = useState<Sensor[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [geometryError, setGeometryError] = useState<string | null>(null);
   const [camera, setCamera] = useState<Camera>({ scale: 1, offset: { x: 0, y: 0 } });
   const dragOrigin = useRef<Point | null>(null);
 
+  const sensors = usePolling(sensorsSource);
+
   useEffect(() => {
     let cancelled = false;
-    Promise.all([geometrySource.load(), loadSensors(SENSORS_URL)])
-      .then(([loadedGeometry, loadedSensors]) => {
+    geometrySource
+      .load()
+      .then((loaded) => {
         if (cancelled) return;
-        setGeometry(loadedGeometry);
-        setSensors(loadedSensors);
+        setGeometry(loaded);
         const rect = containerRef.current?.getBoundingClientRect();
-        setCamera(fitCamera(loadedGeometry, rect?.width ?? 800, rect?.height ?? 600));
+        setCamera(fitCamera(loaded, rect?.width ?? 800, rect?.height ?? 600));
       })
       .catch((err: unknown) => {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : 'Failed to load floorplan');
+        setGeometryError(err instanceof Error ? err.message : 'Failed to load floorplan');
       });
     return () => {
       cancelled = true;
@@ -142,13 +151,17 @@ export function FloorplanView() {
     dragOrigin.current = null;
   }
 
-  const ready = !error && geometry && sensors;
-  const renderableSensors = sensors
-    ? sensors.map(toRenderableSensor).filter((s): s is RenderableSensor => s !== null)
-    : [];
+  const error = geometryError ?? sensors.error;
+  const loading = !geometry || sensors.loading;
+  const ready = !error && geometry && sensors.data;
+  const status: Status = error ? 'error' : loading ? 'loading' : 'live';
+  const renderableSensors = sensors.data ? sensors.data.map(toRenderableSensor) : [];
 
   return (
-    <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
+    <div
+      ref={containerRef}
+      style={{ width: '100%', height: '100%', position: 'relative' }}
+    >
       {error && <div style={statusStyle}>Failed to load floorplan: {error}</div>}
       {!error && !ready && <div style={statusStyle}>Loading floorplan…</div>}
       {ready && (
@@ -170,6 +183,10 @@ export function FloorplanView() {
           </g>
         </svg>
       )}
+      <div style={pillStyle}>
+        <span style={{ ...dotStyle, background: STATUS_COLOR[status] }} />
+        {STATUS_LABEL[status]}
+      </div>
     </div>
   );
 }
@@ -183,4 +200,26 @@ const statusStyle: CSSProperties = {
   background: '#1a1a2e',
   color: '#d0d4dc',
   fontFamily: 'sans-serif',
+};
+
+const pillStyle: CSSProperties = {
+  position: 'absolute',
+  top: 12,
+  right: 12,
+  display: 'flex',
+  alignItems: 'center',
+  gap: 6,
+  padding: '4px 10px',
+  borderRadius: 999,
+  background: 'rgba(0, 0, 0, 0.5)',
+  color: '#d0d4dc',
+  fontFamily: 'sans-serif',
+  fontSize: 12,
+  pointerEvents: 'none',
+};
+
+const dotStyle: CSSProperties = {
+  width: 8,
+  height: 8,
+  borderRadius: '50%',
 };
