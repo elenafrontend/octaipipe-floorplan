@@ -22,3 +22,11 @@ export type Sensor = {
   readonly position: SensorPosition;
   readonly readings: readonly Reading[];
 };
+
+/** One sensor reduced to its current frame — what SensorsSource streams. */
+export type SensorSnapshot = {
+  readonly id: string;
+  readonly label: string;
+  readonly position: SensorPosition;
+  readonly reading: Reading;
+};
