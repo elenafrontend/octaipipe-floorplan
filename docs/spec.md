@@ -54,8 +54,7 @@ Coordinate space
 - The system shall render the DXF geometry in a single normalised model space (metres).
 - When the user pans or zooms, the system shall keep sensors aligned to their geometry
   positions (no drift between plan and overlay).
-- When the user clicks a point on screen, the system shall convert that screen point back to
-  model space to determine which sensor, if any, was hit.
+- When the user clicks a sensor marker, the system shall identify the sensor via SVG DOM events (no coordinate back-conversion needed)
 
 Sensor overlay & join
 - The system shall place each sensor at its position in the shared model space.
@@ -86,7 +85,7 @@ States
 - **FR-2** Normalise parsed DXF entities into an internal geometry model before rendering
   (parse → normalise → render); DXF specifics do not leak past the parser.
 - **FR-3** Support pan and zoom over the plan via a single camera transform (scale + offset).
-- **FR-4** Provide model→screen and screen→model coordinate conversions as pure functions.
+- **FR-4** Provide model→screen coordinate conversion as a pure function. Sensor hit-testing uses SVG DOM events directly.
 - **FR-5** Load sensors, reconcile their coordinate units into model space, and overlay them
   at position with current temperature.
 - **FR-6** Show sensor detail (label, temperature, humidity) on hover/click.

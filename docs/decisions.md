@@ -39,9 +39,8 @@
 
 ## D-3 · Render — SVG
 - **Chosen:** SVG as a swappable renderer over our own neutral `Geometry` type (knows nothing
-  about DXF or SVG), which holds the hall in model space (metres, Y-up). Two pure, testable
-  model↔screen functions convert to pixels — forward to draw, inverse to resolve a sensor click —
-  accounting for pan/zoom.
+  about DXF or SVG), which holds the hall in model space (metres, Y-up). A pure, testable modelToScreen function converts to pixels. 
+- Hit-testing is free via SVG DOM events (<circle onClick>).
 - **Rejected:** canvas — overkill at this scale.
 - **Why:** `[fact]` ~950 entities — SVG handles them easily, headroom to ~10k nodes. Native
   interactivity (`<circle onClick>` — hit-testing for free), pan/zoom via one parent
@@ -93,3 +92,7 @@
 - Loading / failure UX specifics — states are placed (D-6); exact visual treatment open.
 - `GeometrySource` port — kept symmetric with `SensorsSource` for now; may collapse (geometry
   loads once, not a stream).
+- Sensor rendering placement — inside the `<g transform>` (model coords, browser
+  moves them, `modelToScreen` unused) or outside it (screen pixels via
+  `modelToScreen`). Decides whether `modelToScreen` is needed at all and whether
+  it gets a unit test. Resolved empirically in Stage 2.
