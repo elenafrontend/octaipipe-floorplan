@@ -34,8 +34,13 @@
 - **Chosen:** treat the DXF/model world as metres.
 - **Rejected:** trusting `$INSUNITS = 4` (mm) — contradicts the geometry, would misread hall size.
 - **Why:** `[fact]` bounding box ≈ 10 × 8; `[inferred]` only sensible as metres (a 10 mm hall is
-  absurd). The misleading header is the "not tidy" trap. Confirmed empirically by overlaying
-  sensors on the plan.
+  absurd). The misleading header is the "not tidy" trap.
+- **Confirmed** `[fact]` in Stage 2: `dxf`'s `Helper().toPolylines()` bbox on the real file is
+  `(3.81, -3.53)` to `(14.15, 4.71)` — a ~10.3 × 8.2 hall, matching the header's own
+  `$EXTMIN`/`$EXTMAX`. Raw coordinates are used as-is in `normalise.ts`, no scaling. 952
+  polylines out (849 LINE + 102 ARC + 1 LWPOLYLINE), none dropped — the real file needed none of
+  `normalise`'s skip-on-broken-entity path, which remains as a defensive boundary (spec: "not
+  perfectly tidy") and is exercised by its unit test instead.
 
 ## D-3 · Render — SVG
 - **Chosen:** SVG as a swappable renderer over our own neutral `Geometry` type (knows nothing
@@ -85,14 +90,29 @@
   depth. The port keeps the choice reversible: a real fetch/WebSocket is a new adapter, UI
   untouched. Production path (server state → TanStack Query, client state → store) noted in README.
 
+## D-7 · Sensor rendering placement — inside the `<g transform>`
+- **Chosen:** geometry (Stage 2) and sensors (Stage 3) render in raw model coordinates inside one
+  parent `<g transform>`; the `<g>`'s SVG matrix — built directly from `Camera` (`matrix(scale 0
+  0 -scale offsetX offsetY)`) — performs the model→screen mapping. Pan/zoom moves that one
+  container; the browser does the per-point multiplication, not our code.
+- **Rejected:** rendering outside the `<g>` in screen space, converting each point via
+  `modelToScreen` before render.
+- **Why:** matches architecture.md's render section exactly ("all geometry sits in one parent `<g
+  transform>`"), gives free SVG-DOM hit-testing for sensors (FR-4/D-3), and removes an entire
+  class of drift bugs (JS-computed screen coords disagreeing with the DOM's own transform).
+- **Consequence:** `modelToScreen` has no call site in the render path. It stays in `core` —
+  pure, documented, the same formula the `<g>`'s matrix encodes — but earns no dedicated unit
+  test of its own beyond what `camera.test.ts` already covers for `scale`/`offset` math; the
+  render path's coordinate accuracy is instead proven by the visible hall staying aligned under
+  pan/zoom. This is what roadmap.md's Stage 1 note ("modelToScreen test deferred to Stage 2,
+  pending sensor-placement decision") resolves to: no test added, YAGNI — it has no consumer to
+  test against.
+
 ---
 
 ## Not yet decided
-- Unit-reconciliation factor — ÷1000 is the hypothesis; confirm by overlaying sensors.
+- Unit-reconciliation factor — ÷1000 is the hypothesis; confirm by overlaying sensors (Stage 3).
 - Loading / failure UX specifics — states are placed (D-6); exact visual treatment open.
-- `GeometrySource` port — kept symmetric with `SensorsSource` for now; may collapse (geometry
-  loads once, not a stream).
-- Sensor rendering placement — inside the `<g transform>` (model coords, browser
-  moves them, `modelToScreen` unused) or outside it (screen pixels via
-  `modelToScreen`). Decides whether `modelToScreen` is needed at all and whether
-  it gets a unit test. Resolved empirically in Stage 2.
+- `GeometrySource` port — added in Stage 2 with a single `load(): Promise<Geometry>` method (no
+  polling shape, unlike `SensorsSource` — geometry loads once). Did not collapse; `dxfSource.ts`
+  is its only implementation so far.
