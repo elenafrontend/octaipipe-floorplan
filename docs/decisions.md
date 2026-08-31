@@ -16,6 +16,12 @@
 - **Why:** minimal identity + position + time series; units carried in field names
   (`temperatureC`, `humidityPct`) for self-documentation. `sensors.json` wasn't provided —
   shape designed from the brief and the sibling psychrometric task's style. `[inferred]`
+- **Fixture (Stage 3):** `[inferred]` real data still wasn't provided, so `public/sensors.json`
+  is a fabricated fixture built to this shape — 6 sensors, positions placed inside the real
+  hall's DXF bounding box (converted to mm) so they land inside the plan, 6 shared readings each
+  5s apart, loosely modelling cold/mid/hot aisle banding (~20-21C / ~23-24C / ~27-29C) so
+  `tempToColor`'s range has something to show. Swappable later for a real file with no code
+  changes beyond the fetch URL.
 
 ```json
 [
