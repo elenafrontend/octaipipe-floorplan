@@ -1,23 +1,18 @@
-import type { Camera, Geometry } from '@core/index';
+import type { Geometry } from '@core/index';
 
 type FloorplanSvgProps = {
   readonly geometry: Geometry;
-  readonly camera: Camera;
 };
 
 /**
- * Renders Geometry inside one <g transform>, in model coordinates. Pan/zoom
- * moves this single container — the SVG matrix performs the model→screen
- * mapping natively (the same scale/offset/Y-flip modelToScreen encodes,
- * applied once here instead of per point). Sensors join the same <g> in
- * Stage 3, which is what resolves decisions.md's open "sensor rendering
- * placement" question: modelToScreen stays available (and camera-tested)
- * but isn't called from the render path.
+ * Renders Geometry in raw model coordinates — no transform of its own.
+ * The caller (app/FloorplanView) wraps this in the single <g transform>
+ * shared with SensorLayer (D-7): one Camera-derived SVG matrix does the
+ * model→screen mapping for both, instead of each owning its own.
  */
-export function FloorplanSvg({ geometry, camera }: FloorplanSvgProps) {
-  const { scale, offset } = camera;
+export function FloorplanSvg({ geometry }: FloorplanSvgProps) {
   return (
-    <g transform={`matrix(${scale} 0 0 ${-scale} ${offset.x} ${offset.y})`}>
+    <>
       {geometry.map((polyline, index) => (
         <polyline
           key={index}
@@ -28,6 +23,6 @@ export function FloorplanSvg({ geometry, camera }: FloorplanSvgProps) {
           vectorEffect="non-scaling-stroke"
         />
       ))}
-    </g>
+    </>
   );
 }
