@@ -1,10 +1,13 @@
-/** A point in 2D space (model: metres, Y-up; screen: pixels, Y-down). */
-export interface Point {
+
+/** A point in 2D space (model space: metres, Y-up). */
+export type Point = {
   readonly x: number;
   readonly y: number;
-}
+};
 
-/** Creates a Point. */
-export function point(x: number, y: number): Point {
-  return { x, y };
-}
+/**
+ * Hall geometry in model space.
+ * Each inner array is a polyline — an ordered sequence of points
+ * forming a connected path (a line is 2 points, an interpolated arc is N points).
+ */
+export type Geometry = ReadonlyArray<readonly Point[]>;

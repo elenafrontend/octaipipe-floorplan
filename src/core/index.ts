@@ -1,1 +1,2 @@
-export { type Point, point } from './geometry';
+export type { Point, Geometry } from "./geometry";
+export type { Camera } from "./camera";
