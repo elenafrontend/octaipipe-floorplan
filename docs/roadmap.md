@@ -44,7 +44,6 @@ The coordinate kernel in full, before any UI — primary quality bar, pinned by 
 - `feat(core)`: `camera.ts` — pan/zoom operations
 - `test(core)`: camera pan/zoom operations ← this stage's core test
   (modelToScreen test deferred to Stage 2, pending sensor-placement decision)
-- `feat(core)`: `ports.ts` — `SensorsSource`, `GeometrySource` interfaces
 
 **Done when:** transforms are pure and fully tested; no DOM involved.
 
@@ -66,6 +65,9 @@ confirmed empirically here; sensor rendering placement (inside/outside `<g trans
 decided here, which settles whether `modelToScreen` is needed and tested.
 
 **Done when:** the hall is on screen and navigable under pan/zoom.
+
+**Deferred:** `ports.ts` — introduced when a first consumer exists (`SensorsSource`
+in Stage 4; `GeometrySource` only if Stage 2 shows geometry needs a swappable source).
 
 ---
 
@@ -92,6 +94,7 @@ polling is the heart of the rubric's data/state bar, so it's ready first if budg
 - `test(sensors)`: polling — frame advances on tick, loading→data transition ← **spec-test #2**
 - `feat(sensors)`: `sensorsSource.ts` — holds the full series, emits the current frame on a
   ~5s timer via a shared frame index (implements `SensorsSource`)
+- `ports.ts` — `SensorsSource`, `GeometrySource` interfaces
 - `feat(sensors)`: `usePolling.ts` — subscribes to the source; `{ data, loading, error }`
   in local `useState`
 - `feat(app)`: `FloorplanView` reads the hook; `SensorLayer` renders the current frame;
