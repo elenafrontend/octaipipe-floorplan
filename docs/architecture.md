@@ -50,7 +50,6 @@ src/
     sensors/                    everything about sensors, collected
       domain/
         sensor.ts               Sensor, Reading types
-        resolveClick.ts         screen→model→nearest sensor
         tempToColor.ts          temperature → marker colour (pure)
       adapters/
         sensorsSource.ts        fake polling "API" (implements SensorsSource)
@@ -80,7 +79,7 @@ Folders permit good structure but don't guarantee it. Three rules keep coupling 
    and testable in isolation (spec tests run without the rest of the app).
 
 Placement follows purpose: a unit lives where its *meaning* is (`transforms` in `core` because
-it's shared; `resolveClick` and `tempToColor` in `sensors` because their purpose is
+it's shared; `tempToColor` in `sensors` because their purpose is
 sensor-specific). Correct placement raises cohesion and lowers coupling at once.
 
 ## Coordinate spaces & transforms
@@ -99,7 +98,6 @@ Transforms are pure functions in `core/transforms.ts`:
 - `modelToScreen(point, camera)` — forward, to draw.
   `screenX = worldX * scale + offsetX`; `screenY = -worldY * scale + offsetY`
   (Y flipped: CAD Y-up vs screen Y-down).
-- `screenToModel(point, camera)` — inverse, to resolve which sensor a click hit.
 
 Purity is deliberate: accuracy under pan/zoom is the primary quality bar, and pure functions are
 the easiest thing to test — input → expected output, no DOM.
@@ -149,8 +147,7 @@ frame. → decisions.md D-6.
 - **Camera** (pan/zoom) → `app/FloorplanView`. Shared across modules, so it lives at the
   composition point.
 - **Sensor data** → `usePolling` inside `sensors`. Belongs to the sensors module only.
-- **Selected sensor** → `app`. The *calculation* of which sensor a click hits is `sensors`
-  (`resolveClick`); the *ownership* of which one is currently selected sits in `app`, where both
+- **Selected sensor** → `app`. The *calculation* of which sensor a click hits is `sensors`; the *ownership* of which one is currently selected sits in `app`, where both
   the marker layer and the detail panel can read it.
 
 Each piece of state lives where its meaning is.

@@ -39,9 +39,8 @@
 
 ## D-3 · Render — SVG
 - **Chosen:** SVG as a swappable renderer over our own neutral `Geometry` type (knows nothing
-  about DXF or SVG), which holds the hall in model space (metres, Y-up). Two pure, testable
-  model↔screen functions convert to pixels — forward to draw, inverse to resolve a sensor click —
-  accounting for pan/zoom.
+  about DXF or SVG), which holds the hall in model space (metres, Y-up). A pure, testable modelToScreen function converts to pixels. 
+- Hit-testing is free via SVG DOM events (<circle onClick>).
 - **Rejected:** canvas — overkill at this scale.
 - **Why:** `[fact]` ~950 entities — SVG handles them easily, headroom to ~10k nodes. Native
   interactivity (`<circle onClick>` — hit-testing for free), pan/zoom via one parent
