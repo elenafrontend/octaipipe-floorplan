@@ -43,7 +43,9 @@ The coordinate kernel in full, before any UI — primary quality bar, pinned by 
 - `feat(core)`: `transforms.ts` — `modelToScreen`
 - `feat(core)`: `camera.ts` — pan/zoom operations
 - `test(core)`: camera pan/zoom operations ← this stage's core test
-  (modelToScreen test deferred to Stage 2, pending sensor-placement decision)
+  (modelToScreen test deferred to Stage 2, pending sensor-placement decision — resolved in
+  Stage 2/D-7: rendering happens inside a `<g transform>`, so modelToScreen has no render-path
+  consumer and gets no dedicated test)
 
 **Done when:** transforms are pure and fully tested; no DOM involved.
 
