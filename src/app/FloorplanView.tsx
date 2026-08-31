@@ -123,6 +123,7 @@ export function FloorplanView() {
   }
 
   function handlePointerDown(e: ReactPointerEvent<SVGSVGElement>) {
+    e.preventDefault(); // stops the browser's native text-selection/drag-image on pointerdown
     dragOrigin.current = { x: e.clientX, y: e.clientY };
     e.currentTarget.setPointerCapture(e.pointerId);
   }
@@ -154,7 +155,7 @@ export function FloorplanView() {
         <svg
           width="100%"
           height="100%"
-          style={{ background: '#1a1a2e', touchAction: 'none' }}
+          style={{ background: '#1a1a2e', touchAction: 'none', userSelect: 'none' }}
           onWheel={handleWheel}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
