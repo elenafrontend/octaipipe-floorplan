@@ -16,7 +16,12 @@ const geometrySource = createDxfSource(DXF_URL);
 const ZOOM_STEP = 1.1;
 
 /** Centres and scales the camera so geometry's bounding box fills the viewport. */
-function fitCamera(geometry: Geometry, width: number, height: number, padding = 40): Camera {
+function fitCamera(
+  geometry: Geometry,
+  width: number,
+  height: number,
+  padding = 40,
+): Camera {
   let minX = Infinity;
   let minY = Infinity;
   let maxX = -Infinity;
