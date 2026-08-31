@@ -47,6 +47,12 @@
   polylines out (849 LINE + 102 ARC + 1 LWPOLYLINE), none dropped — the real file needed none of
   `normalise`'s skip-on-broken-entity path, which remains as a defensive boundary (spec: "not
   perfectly tidy") and is exercised by its unit test instead.
+- **Sensor side confirmed in Stage 3:** the ÷1000 hypothesis (mm→m) is now applied as
+  `SENSOR_MM_TO_M` in `app/FloorplanView.tsx`. Since `sensors.json` itself is a fabricated
+  fixture (no real file — see D-1), positions were chosen inside the DXF's real bounding box, so
+  "sensors land inside the hall" is true by construction rather than independent proof the
+  factor is right. The ÷1000 reading (mm, per the brief) is still the only interpretation
+  consistent with the brief's own example (`x: 5200` reads as 5.2 m — sane for a ~10 m hall).
 
 ## D-3 · Render — SVG
 - **Chosen:** SVG as a swappable renderer over our own neutral `Geometry` type (knows nothing
@@ -117,7 +123,6 @@
 ---
 
 ## Not yet decided
-- Unit-reconciliation factor — ÷1000 is the hypothesis; confirm by overlaying sensors (Stage 3).
 - Loading / failure UX specifics — states are placed (D-6); exact visual treatment open.
 - `GeometrySource` port — added in Stage 2 with a single `load(): Promise<Geometry>` method (no
   polling shape, unlike `SensorsSource` — geometry loads once). Did not collapse; `dxfSource.ts`
