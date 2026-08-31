@@ -92,3 +92,7 @@
 - Loading / failure UX specifics — states are placed (D-6); exact visual treatment open.
 - `GeometrySource` port — kept symmetric with `SensorsSource` for now; may collapse (geometry
   loads once, not a stream).
+- Sensor rendering placement — inside the `<g transform>` (model coords, browser
+  moves them, `modelToScreen` unused) or outside it (screen pixels via
+  `modelToScreen`). Decides whether `modelToScreen` is needed at all and whether
+  it gets a unit test. Resolved empirically in Stage 2.

@@ -42,8 +42,8 @@ The coordinate kernel in full, before any UI — primary quality bar, pinned by 
 - `feat(core)`: `Geometry`, `Point`, `Camera` types
 - `feat(core)`: `transforms.ts` — `modelToScreen`
 - `feat(core)`: `camera.ts` — pan/zoom operations
-- `test(core)`: model->screen, round-trip, behaviour under zoom
-  ← **spec-test #1**
+- `test(core)`: camera pan/zoom operations ← this stage's core test
+  (modelToScreen test deferred to Stage 2, pending sensor-placement decision)
 - `feat(core)`: `ports.ts` — `SensorsSource`, `GeometrySource` interfaces
 
 **Done when:** transforms are pure and fully tested; no DOM involved.
@@ -61,8 +61,9 @@ First visible result: the hall renders and pans/zooms.
 - `feat(app)`: `FloorplanView` owns camera state, wires pan/zoom handlers
 - `test(floorplan)`: normalise on a DXF slice (skip a broken entity, don't crash)
 
-**Closes open questions:** ÷1000 reconciliation factor and "metres, not mm" (D-2) confirmed
-empirically here, on the real render.
+**Closes open questions:** ÷1000 reconciliation factor and "metres, not mm" (D-2)
+confirmed empirically here; sensor rendering placement (inside/outside `<g transform>`)
+decided here, which settles whether `modelToScreen` is needed and tested.
 
 **Done when:** the hall is on screen and navigable under pan/zoom.
 
@@ -88,13 +89,14 @@ Branch: `feat/live-polling`
 Data comes alive; the UI is written against "current state now". Live before interaction:
 polling is the heart of the rubric's data/state bar, so it's ready first if budget tightens.
 
+- `test(sensors)`: polling — frame advances on tick, loading→data transition ← **spec-test #2**
 - `feat(sensors)`: `sensorsSource.ts` — holds the full series, emits the current frame on a
   ~5s timer via a shared frame index (implements `SensorsSource`)
 - `feat(sensors)`: `usePolling.ts` — subscribes to the source; `{ data, loading, error }`
   in local `useState`
 - `feat(app)`: `FloorplanView` reads the hook; `SensorLayer` renders the current frame;
   loading / error / live states
-- `test(sensors)`: polling — frame advances on tick, loading→data transition ← **spec-test #2**
+
 
 **Done when:** values visibly update on the timer; loading and error states surface.
 
@@ -105,10 +107,10 @@ Branch: `feat/sensor-detail`
 
 Final MVP slice: click/hover reveals a sensor.
 
-- `feat(sensors)`: `resolveClick.ts` — screen→model→nearest sensor
+- `test(sensors)`: interaction path — click a marker → panel shows its data ← **spec-test #3**
+- `feat(sensors)`: sensor selection via SVG DOM
 - `feat(sensors)`: `DetailPanel.tsx` — label, temperature, humidity + empty state
 - `feat(app)`: `app` owns the selected sensor; marker layer and panel both read it
-- `test(sensors)`: interaction path — click a marker → panel shows its data ← **spec-test #3**
 - Live values in the panel come for free: selected + current frame from Stage 4
 
 **Done when:** clicking/hovering a sensor shows its live detail.
